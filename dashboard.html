@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Gente & Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090b0f;--bg2:#0c0f15;
+  --sur:#12161f;--sur2:#171c28;--sur3:#1d2233;
+  --bd:#232b3a;--bd2:#2b3448;
+  --tx:#eef1f8;--tx2:#9aa3bc;--tx3:#60708a;--tx4:#3d4560;
+  --g:#1ed97a;--gdim:rgba(30,217,122,.10);--gbd:rgba(30,217,122,.28);
+  --y:#f5c840;--ydim:rgba(245,200,64,.09);--ybd:rgba(245,200,64,.28);
+  --r:#f04560;--rdim:rgba(240,69,96,.09);--rbd:rgba(240,69,96,.28);
+  --ac:#4f8cff;--ac2:rgba(79,140,255,.11);--acbd:rgba(79,140,255,.26);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'Montserrat',sans-serif;
+  min-height:100vh;padding:28px 24px 80px;
+  background-image:
+    radial-gradient(ellipse 65% 30% at 90% -2%,rgba(79,140,255,.055) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 25% at 4% 95%,rgba(167,139,250,.03) 0%,transparent 60%);
+}
+
+/* ── HEADER ── */
+.hd{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.hd-t{font-size:24px;font-weight:900;letter-spacing:-1px;line-height:1.05;
+  background:linear-gradient(125deg,#eef1f8 40%,#4f8cff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hd-s{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;margin-top:5px}
+.hd-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.hd-d{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em}
+.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── CTRL ROW ── */
+.ctrl-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:20px;align-items:stretch}
+@media(max-width:1100px){.ctrl-row{grid-template-columns:1fr 1fr;}.area-panel{grid-column:1/-1}}
+
+/* ── SUMMARY CARDS ── */
+.sc{background:var(--sur);border:1px solid var(--bd);border-radius:13px;padding:14px 16px 13px;position:relative;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;cursor:pointer;user-select:none}
+.sc:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.sc.active.sg{border-color:var(--g);box-shadow:0 0 0 1px var(--gbd) inset,0 4px 20px rgba(30,217,122,.12)}
+.sc.active.sy{border-color:var(--y);box-shadow:0 0 0 1px var(--ybd) inset,0 4px 20px rgba(245,200,64,.10)}
+.sc.active.sr{border-color:var(--r);box-shadow:0 0 0 1px var(--rbd) inset,0 4px 20px rgba(240,69,96,.10)}
+.sc.active.sp{border-color:var(--ac);box-shadow:0 0 0 1px var(--acbd) inset,0 4px 20px rgba(79,140,255,.10)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.sg::before{background:var(--g)}.sc.sy::before{background:var(--y)}
+.sc.sr::before{background:var(--r)}.sc.sp::before{background:var(--ac)}
+.sc-lbl{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--tx3);margin-bottom:5px}
+.sc-n{font-size:34px;font-weight:900;letter-spacing:-3px;line-height:1}
+.sc.sg .sc-n{color:var(--g)}.sc.sy .sc-n{color:var(--y)}.sc.sr .sc-n{color:var(--r)}.sc.sp .sc-n{color:var(--ac)}
+.sc-d{font-size:9px;font-weight:600;color:var(--tx3);margin-top:3px}
+.sc-hint{font-size:8px;font-weight:500;color:var(--tx4);margin-top:2px;font-style:italic}
+
+/* ── ÁREA PANEL ── */
+.area-panel{background:var(--sur);border:1px solid var(--bd);border-radius:13px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-width:190px}
+.area-panel-label{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--tx3);margin-bottom:9px}
+.area-pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:4px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--sur2);color:var(--tx3);cursor:pointer;transition:all .16s;user-select:none;white-space:nowrap}
+.pill:hover{border-color:var(--ac);color:var(--ac)}
+.pill.active{background:var(--ac);border-color:var(--ac);color:#fff}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1200px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+
+/* ── CARD ── */
+.card{background:var(--sur);border:1px solid var(--bd);border-radius:15px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.card.sg{border-color:var(--gbd);box-shadow:0 0 0 1px var(--gbd) inset}
+.card.sy{border-color:var(--ybd);box-shadow:0 0 0 1px var(--ybd) inset}
+.card.sr{border-color:var(--rbd);box-shadow:0 0 0 1px var(--rbd) inset}
+.card-bar{height:3px}
+.sg .card-bar{background:linear-gradient(90deg,var(--g),rgba(30,217,122,.05))}
+.sy .card-bar{background:linear-gradient(90deg,var(--y),rgba(245,200,64,.05))}
+.sr .card-bar{background:linear-gradient(90deg,var(--r),rgba(240,69,96,.05))}
+.ch{padding:14px 15px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ch-l{flex:1;min-width:0}
+.tag{display:inline-block;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;padding:2px 7px;border-radius:4px;background:var(--sur3);border:1px solid var(--bd2);color:var(--ac);margin-bottom:6px}
+.cname{font-size:12px;font-weight:800;color:var(--tx);line-height:1.3;letter-spacing:-.15px}
+.ch-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.badge{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.sg .badge{background:var(--gdim);color:var(--g);border:1px solid var(--gbd)}
+.sy .badge{background:var(--ydim);color:var(--y);border:1px solid var(--ybd)}
+.sr .badge{background:var(--rdim);color:var(--r);border:1px solid var(--rbd)}
+.pbadge{font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--ac2);color:var(--ac);border:1px solid var(--acbd);cursor:pointer;display:none;white-space:nowrap;transition:all .15s}
+.pbadge:hover{background:var(--ac);color:#fff}
+.pbadge.vis{display:inline-block}
+
+/* ── ROWS ── */
+.rows{padding:11px 15px 0}
+.row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);gap:8px}
+.row:last-child{border-bottom:none}
+.row-left{min-width:0;flex:1}
+.rl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs{font-size:9px;font-weight:500;color:var(--tx3);margin-top:1px;white-space:nowrap}
+.rv{font-size:16px;font-weight:800;letter-spacing:-.4px;color:var(--tx);text-align:right;flex-shrink:0}
+.row.cur .rv{font-size:19px;font-weight:900}
+.row.cur.sg .rv{color:var(--g)}.row.cur.sy .rv{color:var(--y)}.row.cur.sr .rv{color:var(--r)}
+.row.meta .rl{color:var(--tx3);font-size:9px;font-weight:600}.row.meta .rv{font-size:12px;font-weight:600;color:var(--tx3)}
+.row.prev .rv{font-size:15px;font-weight:700;color:var(--tx2)}
+.row.acum .rv{font-size:14px;font-weight:700;color:var(--tx2)}
+.cf{padding:11px 15px 14px;display:flex;gap:7px}
+.btn-ap{flex:1;background:var(--sur3);border:1px solid var(--bd2);border-radius:8px;padding:8px 10px;color:var(--tx2);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-ap:hover{background:var(--ac);color:#fff;border-color:var(--ac)}
+
+/* ── PLANO SECTION ── */
+.ps{border-top:1px solid var(--bd);padding:12px 15px;background:var(--bg2);animation:fIn .22s ease}
+@keyframes fIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.ps-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sy .ps-title{color:var(--y)}.sr .ps-title{color:var(--r)}
+.plist{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.pi{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:9px 11px}
+.pi-h{display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap}
+.pi-n{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.pi-ar{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:2px 7px;border-radius:4px;background:var(--ac2);color:var(--ac);border:1px solid var(--acbd)}
+/* status chips */
+.pi-st{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:4px;border:1px solid}
+.pi-st.aguardando{background:rgba(96,112,138,.12);color:var(--tx3);border-color:rgba(96,112,138,.25)}
+.pi-st.andamento{background:rgba(79,140,255,.12);color:var(--ac);border-color:rgba(79,140,255,.28)}
+.pi-st.concluido{background:var(--gdim);color:var(--g);border-color:var(--gbd)}
+.pi-st.cancelado{background:var(--rdim);color:var(--r);border-color:var(--rbd)}
+.pi-del{background:none;border:none;color:var(--tx4);cursor:pointer;font-size:13px;padding:0 2px;transition:color .15s;margin-left:auto}
+.pi-del:hover{color:var(--r)}
+.pi-ac{font-size:11px;font-weight:700;color:var(--tx);margin-bottom:3px;line-height:1.35}
+.pi-m{display:flex;gap:8px;flex-wrap:wrap}
+.pi-mi{font-size:9px;font-weight:500;color:var(--tx3)}.pi-mi b{color:var(--tx2);font-weight:600}
+.pft{background:none;border:1px dashed var(--bd2);border-radius:8px;padding:7px;width:100%;color:var(--tx3);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.pft:hover{border-color:var(--ac);color:var(--ac)}
+.pf{display:none;flex-direction:column;gap:6px;margin-top:9px}
+.pf.open{display:flex}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fr.full{grid-template-columns:1fr}
+.fl{display:flex;flex-direction:column;gap:3px}
+.fl label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.fl input,.fl textarea,.fl select{background:var(--sur3);border:1px solid var(--bd2);border-radius:6px;padding:7px 9px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:500;outline:none;transition:border-color .15s;width:100%}
+.fl textarea{min-height:52px;resize:none}
+.fl input:focus,.fl textarea:focus,.fl select:focus{border-color:var(--ac)}
+.fl select option{background:var(--sur3)}
+.btn-save{background:var(--ac2);border:1px solid var(--acbd);border-radius:7px;padding:8px;color:var(--ac);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;cursor:pointer;transition:all .2s}
+.btn-save:hover{background:var(--ac);color:#fff}
+
+/* ── MODAL ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
+.mo.open{display:flex}
+.mbox{background:var(--sur);border:1px solid var(--bd2);border-radius:18px;padding:32px;max-width:760px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:mIn .26s cubic-bezier(.34,1.56,.64,1)}
+@keyframes mIn{from{opacity:0;transform:scale(.91) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mcl{position:absolute;top:16px;right:16px;background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;width:30px;height:30px;color:var(--tx2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mcl:hover{color:var(--tx);background:var(--bd2)}
+.mt{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ac);padding:3px 8px;background:var(--sur3);border:1px solid var(--bd2);border-radius:4px;display:inline-block;margin-bottom:7px}
+.mtt{font-size:21px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
+.mrf{font-size:10px;font-weight:500;color:var(--tx3);margin-bottom:20px}
+.msec{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin:16px 0 11px;display:flex;align-items:center;gap:8px}
+.msec::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+/* Tabela histórico com coluna de planos */
+.ht{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px}
+.ht th{text-align:left;padding:7px 11px;background:var(--sur2);color:var(--tx3);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--bd)}
+.ht td{padding:9px 11px;border-bottom:1px solid var(--bd);color:var(--tx2);font-weight:500;vertical-align:middle}
+.ht tr:last-child td{border-bottom:none}
+.ht td.vg{color:var(--g);font-weight:700}.ht td.vy{color:var(--y);font-weight:700}.ht td.vr{color:var(--r);font-weight:700}
+.plan-chip{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:4px;background:var(--ac2);color:var(--ac);border:1px solid var(--acbd);white-space:nowrap;display:inline-block;cursor:pointer}
+.plan-chip:hover{background:var(--ac);color:#fff}
+
+/* inline plano dentro da tabela */
+.ht-plan-row td{background:var(--sur2);padding:10px 11px}
+.ht-plan-detail{display:none}
+.ht-plan-detail.open{display:block}
+
+.mpl{display:flex;flex-direction:column;gap:9px}
+.mpc{background:var(--sur2);border:1px solid var(--bd);border-radius:11px;padding:14px 15px}
+.mph{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap}
+.mpn{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.mpa{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:2px 8px;border-radius:4px;background:var(--ac2);color:var(--ac);border:1px solid var(--acbd)}
+.mps{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:4px;border:1px solid}
+.mps.aguardando{background:rgba(96,112,138,.12);color:var(--tx3);border-color:rgba(96,112,138,.25)}
+.mps.andamento{background:rgba(79,140,255,.12);color:var(--ac);border-color:rgba(79,140,255,.28)}
+.mps.concluido{background:var(--gdim);color:var(--g);border-color:var(--gbd)}
+.mps.cancelado{background:var(--rdim);color:var(--r);border-color:var(--rbd)}
+.mpac{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:9px;line-height:1.3}
+.mpg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.mpf{background:var(--sur3);border-radius:7px;padding:7px 9px}
+.mpfl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--tx3);margin-bottom:2px}
+.mpfv{font-size:11px;font-weight:600;color:var(--tx2)}
+.mpfull{grid-column:1/-1}
+
+/* edit status inline */
+.pi-st-sel{background:var(--sur3);border:1px solid var(--bd2);border-radius:4px;padding:2px 6px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:8px;font-weight:700;outline:none;cursor:pointer}
+
+/* MISC */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--sur)}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.loading{text-align:center;padding:70px 20px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em}
+.spin{display:inline-block;width:22px;height:22px;border:2px solid var(--bd2);border-top-color:var(--ac);border-radius:50%;animation:sp .7s linear infinite;margin-bottom:14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty-msg{text-align:center;padding:48px 20px;font-size:12px;font-weight:600;color:var(--tx3);grid-column:1/-1}
+.fb-notice{font-size:10px;font-weight:600;color:var(--y);background:rgba(245,200,64,.08);border:1px solid rgba(245,200,64,.2);border-radius:8px;padding:10px 16px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hd">
+  <div>
+    <div class="hd-t">Gente &amp; Gestão</div>
+    <div class="hd-s">Dashboard de Indicadores · <span id="plb">—</span></div>
+  </div>
+  <div class="hd-r">
+    <div class="hd-d"><span class="sync-dot" id="sync-dot"></span>Sync: <span id="upd">—</span></div>
+  </div>
+</div>
+
+<!-- Firebase config notice (escondido após configurar) -->
+<div class="fb-notice" id="fb-notice" style="display:none">
+  ⚠ Firebase não configurado. Os planos de ação estão salvos apenas localmente. Siga o guia de configuração do Firebase para habilitar sync em tempo real.
+</div>
+
+<!-- CTRL ROW -->
+<div class="ctrl-row">
+  <div class="sc sg" id="sc-g" onclick="toggleSF('g')">
+    <div class="sc-lbl">Na Meta</div><div class="sc-n" id="cg">—</div>
+    <div class="sc-d">indicadores</div><div class="sc-hint">clique para filtrar</div>
+  </div>
+  <div class="sc sy" id="sc-y" onclick="toggleSF('y')">
+    <div class="sc-lbl">Atenção</div><div class="sc-n" id="cy">—</div>
+    <div class="sc-d">indicadores</div><div class="sc-hint">clique para filtrar</div>
+  </div>
+  <div class="sc sr" id="sc-r" onclick="toggleSF('r')">
+    <div class="sc-lbl">Crítico</div><div class="sc-n" id="cr">—</div>
+    <div class="sc-d">indicadores</div><div class="sc-hint">clique para filtrar</div>
+  </div>
+  <div class="sc sp" id="sc-p" onclick="toggleSF('p')">
+    <div class="sc-lbl">Planos de Ação</div><div class="sc-n" id="cp">—</div>
+    <div class="sc-d">ações registradas</div><div class="sc-hint">clique para filtrar</div>
+  </div>
+  <div class="area-panel">
+    <div class="area-panel-label">Filtrar por Área</div>
+    <div class="area-pills" id="area-pills"></div>
+  </div>
+</div>
+
+<div class="grid" id="dash">
+  <div class="empty-msg"><div class="spin"></div><br>Carregando...</div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="moClick(event)">
+  <div class="mbox">
+    <button class="mcl" onclick="closeMo()">✕</button>
+    <div id="mi"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ══════════════════════════════════════════════════════════════
+//  🔧 CONFIGURAÇÃO FIREBASE — substitua pelos seus dados
+//  Siga o guia README-firebase.md para obter esses valores
+// ══════════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBf7Iq4MEUvgFegwJ_U919kr9ILp9V4hec",
+  authDomain:        "dashboard-gg-f163b.firebaseapp.com",
+  projectId:         "dashboard-gg-f163b",
+  storageBucket:     "dashboard-gg-f163b.firebasestorage.app",
+  messagingSenderId: "537084608558",
+  appId:             "1:537084608558:web:c95db94d0354d3a7dbaa6e"
+};
+// ══════════════════════════════════════════════════════════════
+
+const MONTHS=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const PLAN_AREAS=['DHO','Qualidade','Endomarketing','DP','R&S','Geral','Comercial','Operações','TI','Financeiro','Jurídico','Marketing'];
+const SHEET='https://docs.google.com/spreadsheets/d/e/2PACX-1vTn7jYHWYnEY5lAMye8VWT3a0VD43GCoewkaTo38ip_yafcUN1RizBYR-Jj0hHlPWR8MEAN298CxzbZ/pub?output=csv';
+const SUB_LIST=['DHO','QUALIDADE','ENDOMARKETING','DP','R&S','GERAL'];
+const ST_STATUS={aguardando:'Aguardando Início',andamento:'Em Andamento',concluido:'Concluído',cancelado:'Cancelado'};
+
+let INDS=[], PL={}, db=null, unsubFirebase=null;
+let activeSF=null, activeArea='Todos';
+let firebaseOk=false;
+
+const cm=()=>new Date().getMonth();
+const pm=()=>{const m=cm();return m===0?11:m-1};
+const curYr=()=>new Date().getFullYear();
+
+// ── FIREBASE INIT ──────────────────────────────────────────────
+function initFirebase(){
+  if(FIREBASE_CONFIG.apiKey===''){
+    document.getElementById('fb-notice').style.display='flex';
+    loadLocalFallbackPlanos();
+    return;
+  }
+  try{
+    const app=initializeApp(FIREBASE_CONFIG);
+    db=getFirestore(app);
+    firebaseOk=true;
+    // Escuta em tempo real
+    unsubFirebase=onSnapshot(collection(db,'planos'),(snap)=>{
+      PL={};
+      snap.forEach(d=>{PL[d.id]=d.data().lista||[]});
+      renderGrid();updSum();
+    });
+  }catch(e){
+    console.warn('Firebase error:',e);
+    document.getElementById('fb-notice').style.display='flex';
+    loadLocalFallbackPlanos();
+  }
+}
+
+function loadLocalFallbackPlanos(){
+  PL=JSON.parse(localStorage.getItem('gg5_pl')||'{}');
+}
+
+async function savePlano(key, lista){
+  if(firebaseOk&&db){
+    await setDoc(doc(db,'planos',key),{lista});
+  } else {
+    PL[key]=lista;
+    localStorage.setItem('gg5_pl',JSON.stringify(PL));
+    renderGrid();updSum();
+  }
+}
+
+async function deletePlano(key, idx){
+  const lista=(PL[key]||[]);
+  lista.splice(idx,1);
+  if(firebaseOk&&db){
+    if(lista.length===0){
+      await deleteDoc(doc(db,'planos',key));
+    } else {
+      await setDoc(doc(db,'planos',key),{lista});
+    }
+  } else {
+    if(lista.length===0) delete PL[key];
+    else PL[key]=lista;
+    localStorage.setItem('gg5_pl',JSON.stringify(PL));
+    renderGrid();updSum();
+  }
+}
+
+async function updateStatus(key, idx, newStatus){
+  const lista=[...(PL[key]||[])];
+  if(lista[idx]) lista[idx].status=newStatus;
+  await savePlano(key, lista);
+}
+
+// ── CHAVE DO PLANO: inclui o mês de criação ──────────────────────
+// key = "indKey__AAAA_MM"  → vinculado ao indicador e ao mês
+function makeIndKey(i){ return `${i.sub}__${i.ind}`.replace(/[^a-zA-Z0-9_]/g,'_'); }
+function makePlKey(i){
+  const n=new Date();
+  return `${makeIndKey(i)}__${n.getFullYear()}_${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+// Retorna todas as chaves de plano de um indicador (qualquer mês)
+function getAllPlanKeys(i){
+  const prefix=makeIndKey(i)+'__';
+  return Object.keys(PL).filter(k=>k.startsWith(prefix));
+}
+// Total de planos de um indicador (todos os meses)
+function countPlans(i){
+  return getAllPlanKeys(i).reduce((a,k)=>a+(PL[k]||[]).length,0);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function pn(s){
+  if(!s||s==='-'||s==='-%'||s==='')return null;
+  const c=s.replace(/R\$\s?/g,'').replace(/%/g,'').replace(/\./g,'').replace(',','.').trim();
+  const n=parseFloat(c);return isNaN(n)?null:n;
+}
+function stCalc(val,meta,ref,name){
+  if(val===null||meta===null)return 'n';
+  const bigger=ref.toLowerCase().includes('maior');
+  const isENPS=(name||'').toLowerCase().includes('enps');
+  if(bigger){
+    if(isENPS){const d=meta-val;if(val>=meta)return 'g';if(d>=30)return 'r';return 'y';}
+    const r=val/meta;if(r>=1)return 'g';if(r>=.85)return 'y';return 'r';
+  } else {
+    const r=val/meta;if(r<=1)return 'g';if(r<=1.15)return 'y';return 'r';
+  }
+}
+const SL={g:'↑ Meta',y:'⚠ Atenção',r:'↓ Crítico',n:'N/D'};
+const SC={g:'sg',y:'sy',r:'sr',n:''};
+const ST_CLS={aguardando:'aguardando',andamento:'andamento',concluido:'concluido',cancelado:'cancelado'};
+
+function totPL(){return Object.values(PL).reduce((a,b)=>a+(Array.isArray(b)?b.length:0),0)}
+
+function parseCSV(t){
+  const lines=t.trim().split('\n');const res=[];
+  for(const l of lines){
+    const row=[];let cur='';let q=false;
+    for(const c of l){if(c==='"'){q=!q}else if(c===','&&!q){row.push(cur.trim());cur=''}else cur+=c;}
+    row.push(cur.trim());res.push(row);
+  }
+  return res;
+}
+function buildInds(raw){
+  const C=cm(),P=pm();
+  return raw
+    .filter(r=>SUB_LIST.includes((r[0]||'').trim().toUpperCase())&&(r[1]||'').trim())
+    .map(r=>{
+      const sub=r[0].trim(),ind=r[1].trim(),ref=r[2]||'',mS=r[3]||'',aS=r[4]||'';
+      const mons=r.slice(5,17).map(v=>(v||'').trim());
+      const mN=pn(mS),cS=mons[C]||'',pS=mons[P]||'';
+      const cN=pn(cS),pN=pn(pS);
+      const status=stCalc(pN,mN,ref,ind);
+      const curSt=stCalc(cN,mN,ref,ind);
+      return{sub,ind,ref,mS,mN,aS,cS,pS,cN,pN,status,curSt,mons};
+    });
+}
+
+// ── FILTROS ───────────────────────────────────────────────────
+function getUniqueSubs(){return['Todos',...[...new Set(INDS.map(i=>i.sub))]]}
+function buildAreaPills(){
+  document.getElementById('area-pills').innerHTML=getUniqueSubs().map(s=>
+    `<div class="pill${s===activeArea?' active':''}" onclick="setArea('${s}')">${s}</div>`
+  ).join('');
+}
+window.setArea=function(a){activeArea=a;buildAreaPills();renderGrid();}
+window.toggleSF=function(s){
+  activeSF=(activeSF===s)?null:s;
+  ['g','y','r','p'].forEach(k=>document.getElementById('sc-'+k).classList.toggle('active',activeSF===k));
+  renderGrid();
+}
+function applyFilters(){
+  let res=INDS;
+  if(activeArea&&activeArea!=='Todos'){
+    res=res.filter(i=>i.sub.toUpperCase()===activeArea.toUpperCase()||i.sub.toUpperCase()==='GERAL');
+  }
+  if(activeSF){
+    if(activeSF==='p') res=res.filter(i=>countPlans(i)>0);
+    else res=res.filter(i=>i.status===activeSF);
+  }
+  return res;
+}
+
+function updSum(){
+  let g=0,y=0,r=0;
+  INDS.forEach(i=>{if(i.status==='g')g++;else if(i.status==='y')y++;else if(i.status==='r')r++;});
+  document.getElementById('cg').textContent=g;
+  document.getElementById('cy').textContent=y;
+  document.getElementById('cr').textContent=r;
+  document.getElementById('cp').textContent=totPL();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderGrid(){
+  const C=cm(),P=pm();
+  buildAreaPills();
+  const filtered=applyFilters();
+  if(!filtered.length){
+    document.getElementById('dash').innerHTML='<div class="empty-msg">Nenhum indicador para os filtros selecionados.</div>';
+    return;
+  }
+  document.getElementById('dash').innerHTML=filtered.map(i=>renderCard(i,P,C)).join('');
+  updSum();
+}
+
+function renderCard(i,P,C){
+  const sc=SC[i.status]||'';
+  const nPl=countPlans(i);
+  const needP=(i.status==='r'||i.status==='y');
+  const yr=curYr();
+  const pL=MONTHS[P].substring(0,3)+' / '+yr;
+  const cL=MONTHS[C].substring(0,3)+' / '+yr;
+  const indKey=makeIndKey(i);
+  const pb=nPl>0?`<span class="pbadge vis" onclick="openMo('${indKey}')">📋 ${nPl}</span>`:'<span class="pbadge"></span>';
+
+  return`<div class="card ${sc}" id="card-${indKey}">
+  <div class="card-bar"></div>
+  <div class="ch">
+    <div class="ch-l"><div class="tag">${i.sub}</div><div class="cname">${i.ind}</div></div>
+    <div class="ch-r"><div class="badge">${SL[i.status]}</div>${pb}</div>
+  </div>
+  <div class="rows">
+    <div class="row meta"><div class="row-left"><div class="rl">Meta</div></div><div class="rv">${i.mS||'—'}</div></div>
+    <div class="row acum"><div class="row-left"><div class="rl">Acumulado ${yr}</div><div class="rs">Ano corrente</div></div><div class="rv">${i.aS||'—'}</div></div>
+    <div class="row prev"><div class="row-left"><div class="rl">${pL}</div><div class="rs">Mês anterior · base do status</div></div><div class="rv">${i.pS||'—'}</div></div>
+    <div class="row cur ${SC[i.curSt]||sc}"><div class="row-left"><div class="rl">${cL}</div><div class="rs">Mês atual</div></div><div class="rv">${i.cS||'—'}</div></div>
+  </div>
+  ${needP?renderPS(i,P):''}
+  <div class="cf"><button class="btn-ap" onclick="openMo('${indKey}')">⊞ Aprofundar</button></div>
+</div>`;
+}
+
+function renderPS(i,P){
+  const sc=SC[i.status];
+  const plKey=makePlKey(i); // chave do mês atual para novos planos
+  const allKeys=getAllPlanKeys(i);
+  const allPls=allKeys.flatMap(k=>(PL[k]||[]).map(p=>({...p,_key:k})));
+  const aOpts=PLAN_AREAS.map(a=>`<option value="${a}">${a}</option>`).join('');
+  const stOpts=Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  const indKey=makeIndKey(i);
+
+  let lH='';
+  if(allPls.length){
+    lH='<div class="plist">'+allPls.map((p,pi)=>{
+      const stCls=ST_CLS[p.status||'aguardando']||'aguardando';
+      const stLbl=ST_STATUS[p.status||'aguardando']||'Aguardando Início';
+      // Descobre o índice dentro da chave original
+      const origList=PL[p._key]||[];
+      const origIdx=origList.findIndex((x,xi)=>x.acao===p.acao&&x.resp===p.resp&&x.ini===p.ini);
+      return`<div class="pi">
+        <div class="pi-h">
+          <span class="pi-n">Plano #${pi+1}</span>
+          <span class="pi-ar">${p.area||'—'}</span>
+          <span class="pi-st ${stCls}">${stLbl}</span>
+          <button class="pi-del" onclick="delPl('${p._key}',${origIdx})">×</button>
+        </div>
+        <div class="pi-ac">${p.acao||'—'}</div>
+        <div class="pi-m">
+          <div class="pi-mi">👤 <b>${p.resp||'—'}</b></div>
+          <div class="pi-mi">📅 <b>${p.ini||'—'}</b>→<b>${p.fim||'—'}</b></div>
+          <div class="pi-mi">🎯 <b>${p.met||'—'}</b></div>
+          <div class="pi-mi" style="margin-left:auto">
+            <select class="pi-st-sel" onchange="updSt('${p._key}',${origIdx},this.value)">
+              ${Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}"${p.status===v?' selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  return`<div class="ps ${sc}" id="ps-${indKey}">
+  <div class="ps-title">⚡ Planos de Ação${allPls.length?' ('+allPls.length+')':''}</div>
+  ${lH}
+  <button class="pft" onclick="togPF('${indKey}')">+ Adicionar novo plano</button>
+  <div class="pf" id="pf-${indKey}">
+    <div class="fr full"><div class="fl"><label>Ação Proposta</label><textarea id="fa-${indKey}" placeholder="Descreva a ação corretiva..."></textarea></div></div>
+    <div class="fr">
+      <div class="fl"><label>Responsável</label><input id="fr-${indKey}" type="text" placeholder="Nome..."></div>
+      <div class="fl"><label>Área Responsável</label><select id="farea-${indKey}">${aOpts}</select></div>
+    </div>
+    <div class="fr">
+      <div class="fl"><label>Início</label><input id="fi-${indKey}" type="date"></div>
+      <div class="fl"><label>Término</label><input id="ff-${indKey}" type="date"></div>
+    </div>
+    <div class="fr">
+      <div class="fl"><label>Métrica de Sucesso</label><input id="fm-${indKey}" type="text" placeholder="Como medir?"></div>
+      <div class="fl"><label>Status Inicial</label><select id="fst-${indKey}">${stOpts}</select></div>
+    </div>
+    <button class="btn-save" onclick="addPl('${indKey}','${plKey}')">✓ Salvar Plano</button>
+  </div>
+</div>`;
+}
+
+// ── PLANO CRUD ────────────────────────────────────────────────
+window.togPF=function(indKey){const f=document.getElementById(`pf-${indKey}`);if(f)f.classList.toggle('open');}
+
+window.addPl=async function(indKey,plKey){
+  const acao=document.getElementById(`fa-${indKey}`)?.value.trim()||'';
+  if(!acao){const el=document.getElementById(`fa-${indKey}`);if(el){el.style.borderColor='var(--r)';setTimeout(()=>el.style.borderColor='',1500);}return;}
+  const lista=[...(PL[plKey]||[])];
+  lista.push({
+    acao,
+    resp:document.getElementById(`fr-${indKey}`)?.value.trim()||'',
+    area:document.getElementById(`farea-${indKey}`)?.value||'',
+    ini:document.getElementById(`fi-${indKey}`)?.value||'',
+    fim:document.getElementById(`ff-${indKey}`)?.value||'',
+    met:document.getElementById(`fm-${indKey}`)?.value.trim()||'',
+    status:document.getElementById(`fst-${indKey}`)?.value||'aguardando',
+    criadoEm: new Date().toISOString()
+  });
+  await savePlano(plKey,lista);
+};
+
+window.delPl=async function(key,idx){await deletePlano(key,idx);};
+window.updSt=async function(key,idx,newSt){await updateStatus(key,idx,newSt);};
+
+// ── MODAL ─────────────────────────────────────────────────────
+window.openMo=function(indKey){
+  const i=INDS.find(x=>makeIndKey(x)===indKey);if(!i)return;
+  const C=cm();
+
+  // Histórico mensal
+  let hR='';
+  for(let m=0;m<12;m++){
+    const v=i.mons[m];if(!v)continue;
+    const s2=stCalc(pn(v),i.mN,i.ref,i.ind);
+    const cls=s2==='g'?'vg':s2==='y'?'vy':s2==='r'?'vr':'';
+    const hl=m===C?` style="background:var(--sur2)"`:'';
+    // planos desse mês
+    const mKey=`${indKey}__${curYr()}_${String(m+1).padStart(2,'0')}`;
+    const mPls=PL[mKey]||[];
+    const plChip=mPls.length
+      ?`<span class="plan-chip" onclick="toggleHtDetail('htd-${m}')">${mPls.length} plano${mPls.length>1?'s':''}</span>`
+      :'';
+    hR+=`<tr${hl}><td style="color:var(--tx2);font-weight:600">${MONTHS[m]}</td><td class="${cls}">${v}</td><td style="color:var(--tx3)">${i.mS}</td><td>${plChip}</td></tr>`;
+    // detalhe dos planos inline
+    if(mPls.length){
+      const detHtml=mPls.map((p,pi)=>{
+        const stCls=ST_CLS[p.status||'aguardando'];
+        const stLbl=ST_STATUS[p.status||'aguardando'];
+        return`<div style="background:var(--sur3);border-radius:7px;padding:8px 10px;margin-bottom:5px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+            <span style="font-size:8px;font-weight:800;color:var(--tx3);text-transform:uppercase">Plano #${pi+1}</span>
+            <span class="mpa">${p.area||'—'}</span>
+            <span class="mps ${stCls}">${stLbl}</span>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:4px">${p.acao}</div>
+          <div style="font-size:9px;color:var(--tx3)">
+            👤 <b style="color:var(--tx2)">${p.resp||'—'}</b> &nbsp;
+            📅 <b style="color:var(--tx2)">${p.ini||'—'}</b>→<b style="color:var(--tx2)">${p.fim||'—'}</b> &nbsp;
+            🎯 <b style="color:var(--tx2)">${p.met||'—'}</b>
+          </div>
+        </div>`;
+      }).join('');
+      hR+=`<tr class="ht-plan-row"><td colspan="4"><div class="ht-plan-detail" id="htd-${m}">${detHtml}</div></td></tr>`;
+    }
+  }
+  if(!hR)hR=`<tr><td colspan="4" style="text-align:center;color:var(--tx3);padding:16px;font-weight:500">Sem dados históricos</td></tr>`;
+
+  // Todos os planos do indicador (visão consolidada)
+  const allKeys=getAllPlanKeys(i);
+  const allPls=allKeys.flatMap(k=>(PL[k]||[]).map(p=>({...p,_key:k})));
+  let pH=allPls.length
+    ?('<div class="mpl">'+allPls.map((p,pi)=>{
+        const stCls=ST_CLS[p.status||'aguardando'];
+        const stLbl=ST_STATUS[p.status||'aguardando'];
+        const mesRef=p._key.split('__').pop().replace('_','/');
+        return`<div class="mpc">
+          <div class="mph">
+            <span class="mpn">Plano #${pi+1}</span>
+            <span class="mpa">${p.area||'—'}</span>
+            <span class="mps ${stCls}">${stLbl}</span>
+            <span style="font-size:8px;font-weight:600;color:var(--tx3);margin-left:auto">Criado em: ${mesRef}</span>
+          </div>
+          <div class="mpac">${p.acao||'—'}</div>
+          <div class="mpg">
+            <div class="mpf"><div class="mpfl">Responsável</div><div class="mpfv">${p.resp||'—'}</div></div>
+            <div class="mpf"><div class="mpfl">Início</div><div class="mpfv">${p.ini||'—'}</div></div>
+            <div class="mpf"><div class="mpfl">Término</div><div class="mpfv">${p.fim||'—'}</div></div>
+            <div class="mpf mpfull"><div class="mpfl">Métrica de Sucesso</div><div class="mpfv">${p.met||'—'}</div></div>
+          </div>
+        </div>`;
+      }).join('')+'</div>')
+    :`<div style="color:var(--tx3);font-size:11px;font-weight:500;padding:8px 0">Nenhum plano registrado.</div>`;
+
+  document.getElementById('mi').innerHTML=`
+    <div class="mt">${i.sub}</div><div class="mtt">${i.ind}</div>
+    <div class="mrf">${i.ref} · Meta: ${i.mS}</div>
+    <div class="msec">Histórico de Resultados</div>
+    <table class="ht">
+      <thead><tr><th>Mês</th><th>Realizado</th><th>Meta</th><th>Planos de Ação</th></tr></thead>
+      <tbody>${hR}</tbody>
+    </table>
+    <div class="msec">Todos os Planos de Ação (${allPls.length})</div>${pH}`;
+  document.getElementById('mo').classList.add('open');
+  document.body.style.overflow='hidden';
+};
+
+window.toggleHtDetail=function(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+};
+
+window.closeMo=function(){document.getElementById('mo').classList.remove('open');document.body.style.overflow='';};
+window.moClick=function(e){if(e.target===document.getElementById('mo'))closeMo();};
+
+// ── FETCH SHEETS ──────────────────────────────────────────────
+async function fetchData(){
+  try{
+    const r=await fetch(SHEET);if(!r.ok)throw new Error(r.status);
+    const rows=parseCSV(await r.text());
+    const inds=buildInds(rows);if(!inds.length)throw new Error('vazio');
+    INDS=inds;fin(false);
+  }catch(e){console.warn('Sheets offline:',e.message);fallback();}
+}
+
+function fin(isFb){
+  const n=new Date(),C=cm();
+  document.getElementById('plb').textContent=MONTHS[C]+' '+n.getFullYear();
+  document.getElementById('upd').textContent=n.toLocaleString('pt-BR')+(isFb?' · (exemplo)':'');
+  buildAreaPills();renderGrid();updSum();
+}
+
+function fallback(){
+  const raw=[
+    ['DHO','Colaboradores em PDI','Atinge (verde) se indicador é maior que a meta','20','23','5','20','45','','','','','','','',''],
+    ['DHO','TMV (Tempo Médio de Venda)','Atinge (verde) se indicador é menor que a meta','30','36,67','35','45','30','','','','','','','',''],
+    ['DHO','Horas de Treinamento','Atinge (verde) se indicador é maior que a meta','6','9,00','7','11','9','','','','','','','',''],
+    ['DHO','Posições Críticas com Sucessores (%)','Atinge (verde) se indicador é maior que a meta','85%','43%','50%','30%','50%','','','','','','','',''],
+    ['Qualidade','Produtividade Mensal','Atinge (verde) se indicador é maior que a meta','120','136','126','136','145','','','','','','','',''],
+    ['Qualidade','Conformidade de Processos (%)','Atinge (verde) se indicador é maior que a meta','90%','93%','98%','90%','92%','','','','','','','',''],
+    ['Qualidade','Resgate de Vendas','Atinge (verde) se indicador é maior que a meta','R$ 35.000,00','R$ 108.000,00','R$ 12.000,00','R$ 48.000,00','R$ 48.000,00','','','','','','','',''],
+    ['Endomarketing','eNPS','Atinge (verde) se indicador é maior que a meta','50','30,80','31,2','31,2','30','','','','','','','',''],
+    ['Endomarketing','Cultura (Indicador Geral)','Atinge (verde) se indicador é maior que a meta','4','4,20','-','-','4,2','','','','','','','',''],
+    ['Endomarketing','Cultura (Favorabilidade)','Atinge (verde) se indicador é maior que a meta','75%','79%','-%','-%','79%','','','','','','','',''],
+    ['Endomarketing','Nível de Energia','Atinge (verde) se indicador é maior que a meta','4,5','4,47','4,5','4,3','4,6','','','','','','','',''],
+    ['DP','Turnover','Atinge (verde) se indicador é menor que a meta','8%','13,76%','13,55%','18,42%','9,32%','','','','','','','',''],
+    ['DP','Absenteísmo','Atinge (verde) se indicador é menor que a meta','15,00%','12,33%','10,00%','15,00%','12,00%','','','','','','','',''],
+    ['DP','Advertências Aplicadas','Atinge (verde) se indicador é menor que a meta','8','5,00','5','4','6','','','','','','','',''],
+    ['R&S','SLA de Contratação','Atinge (verde) se indicador é menor que a meta','15','13,33','17','11','12','','','','','','','',''],
+    ['R&S','Custo de Contratação','Atinge (verde) se indicador é menor que a meta','100%','75,00%','65%','85%','75%','','','','','','','',''],
+    ['Geral','ROI','Atinge (verde) se indicador é maior que a meta','3,00','3,05','1,828','0,185','7,133','','','','','','','',''],
+  ];
+  INDS=buildInds(raw);fin(true);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+initFirebase();
+fetchData();
+setInterval(fetchData,5*60*1000);
+</script>
+</body>
+</html>
