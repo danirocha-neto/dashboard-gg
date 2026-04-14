@@ -131,6 +131,8 @@ body{
 .pi-st.concluido{background:var(--gdim);color:var(--g);border-color:var(--gbd)}
 .pi-st.cancelado{background:var(--rdim);color:var(--r);border-color:var(--rbd)}
 .pi-del{background:none;border:none;color:var(--tx4);cursor:pointer;font-size:13px;padding:0 2px;transition:color .15s;margin-left:auto}
+.pi-edit-btn{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:11px;padding:0 3px;transition:color .15s}
+.pi-edit-btn:hover{color:var(--ac)}
 .pi-del:hover{color:var(--r)}
 .pi-ac{font-size:11px;font-weight:700;color:var(--tx);margin-bottom:3px;line-height:1.35}
 .pi-m{display:flex;gap:8px;flex-wrap:wrap}
@@ -196,6 +198,28 @@ body{
 
 /* edit status inline */
 .pi-st-sel{background:var(--sur3);border:1px solid var(--bd2);border-radius:4px;padding:2px 6px;color:var(--tx);font-family:'Montserrat',sans-serif;font-size:8px;font-weight:700;outline:none;cursor:pointer}
+
+
+/* ── PLANO CAROUSEL (card view) ── */
+.pcarousel{position:relative;margin-bottom:10px}
+.pcar-track{overflow:hidden;border-radius:8px}
+.pcar-item{display:none}
+.pcar-item.active{display:block}
+.pcar-nav{display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:6px}
+.pcar-btn{background:var(--sur3);border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;color:var(--tx3);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s}
+.pcar-btn:hover{border-color:var(--ac);color:var(--ac)}
+.pcar-btn:disabled{opacity:.3;cursor:default}
+.pcar-counter{font-size:9px;font-weight:600;color:var(--tx3)}
+
+
+/* ── MODAL EDIT HISTORY ── */
+.medit-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.medit-item{background:var(--sur3);border-radius:7px;padding:8px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.medit-field{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3)}
+.medit-old{font-size:11px;font-weight:600;color:var(--r)}
+.medit-new{font-size:11px;font-weight:600;color:var(--g)}
+.medit-arrow{color:var(--tx3);font-size:10px}
+.medit-who{font-size:9px;font-weight:500;color:var(--tx3);margin-left:auto}
 
 /* MISC */
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--sur)}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
@@ -460,6 +484,7 @@ function updSum(){
   document.getElementById('cp').textContent=totPL();
 }
 
+
 // ── RENDER ────────────────────────────────────────────────────
 function renderGrid(){
   const C=cm(),P=pm();
@@ -503,46 +528,58 @@ function renderCard(i,P,C){
 
 function renderPS(i,P){
   const sc=SC[i.status];
-  const plKey=makePlKey(i); // chave do mês atual para novos planos
+  const plKey=makePlKey(i);
   const allKeys=getAllPlanKeys(i);
   const allPls=allKeys.flatMap(k=>(PL[k]||[]).map(p=>({...p,_key:k})));
   const aOpts=PLAN_AREAS.map(a=>`<option value="${a}">${a}</option>`).join('');
   const stOpts=Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
   const indKey=makeIndKey(i);
+  const carId=`car-${indKey}`;
 
-  let lH='';
+  // CAROUSEL — mostra 1 plano por vez
+  let carH='';
   if(allPls.length){
-    lH='<div class="plist">'+allPls.map((p,pi)=>{
+    const items=allPls.map((p,pi)=>{
       const stCls=ST_CLS[p.status||'aguardando']||'aguardando';
       const stLbl=ST_STATUS[p.status||'aguardando']||'Aguardando Início';
-      // Descobre o índice dentro da chave original
       const origList=PL[p._key]||[];
-      const origIdx=origList.findIndex((x,xi)=>x.acao===p.acao&&x.resp===p.resp&&x.ini===p.ini);
-      return`<div class="pi">
-        <div class="pi-h">
-          <span class="pi-n">Plano #${pi+1}</span>
-          <span class="pi-ar">${p.area||'—'}</span>
-          <span class="pi-st ${stCls}">${stLbl}</span>
-          <button class="pi-del" onclick="delPl('${p._key}',${origIdx})">×</button>
-        </div>
-        <div class="pi-ac">${p.acao||'—'}</div>
-        <div class="pi-m">
-          <div class="pi-mi">👤 <b>${p.resp||'—'}</b></div>
-          <div class="pi-mi">📅 <b>${p.ini||'—'}</b>→<b>${p.fim||'—'}</b></div>
-          <div class="pi-mi">🎯 <b>${p.met||'—'}</b></div>
-          <div class="pi-mi" style="margin-left:auto">
-            <select class="pi-st-sel" onchange="updSt('${p._key}',${origIdx},this.value)">
-              ${Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}"${p.status===v?' selected':''}>${l}</option>`).join('')}
-            </select>
+      const origIdx=origList.findIndex(x=>x.acao===p.acao&&x.resp===p.resp&&x.ini===p.ini);
+      return`<div class="pcar-item${pi===0?' active':''}" data-idx="${pi}">
+        <div class="pi">
+          <div class="pi-h">
+            <span class="pi-n">Plano #${pi+1}</span>
+            <span class="pi-ar">${p.area||'—'}</span>
+            <span class="pi-st ${stCls}">${stLbl}</span>
+            <button class="pi-edit-btn" onclick="openEditPlan('${p._key}',${origIdx})" title="Editar plano">✏</button>
+            <button class="pi-del" onclick="delPl('${p._key}',${origIdx})">×</button>
+          </div>
+          <div class="pi-ac">${p.acao||'—'}</div>
+          <div class="pi-m">
+            <div class="pi-mi">👤 <b>${p.resp||'—'}</b></div>
+            <div class="pi-mi">📅 <b>${p.ini||'—'}</b>→<b>${p.fim||'—'}</b></div>
+            <div class="pi-mi">🎯 <b>${p.met||'—'}</b></div>
+            <div class="pi-mi" style="margin-left:auto">
+              <select class="pi-st-sel" onchange="updSt('${p._key}',${origIdx},this.value)">
+                ${Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}"${p.status===v?' selected':''}>${l}</option>`).join('')}
+              </select>
+            </div>
           </div>
         </div>
       </div>`;
-    }).join('')+'</div>';
+    }).join('');
+    carH=`<div class="pcarousel" id="${carId}">
+      <div class="pcar-track">${items}</div>
+      ${allPls.length>1?`<div class="pcar-nav">
+        <button class="pcar-btn" onclick="carNav('${carId}',-1)" id="${carId}-prev" disabled>‹ Anterior</button>
+        <span class="pcar-counter" id="${carId}-ctr">1 / ${allPls.length}</span>
+        <button class="pcar-btn" onclick="carNav('${carId}',1)" id="${carId}-next">Próximo ›</button>
+      </div>`:''}
+    </div>`;
   }
 
   return`<div class="ps ${sc}" id="ps-${indKey}">
   <div class="ps-title">⚡ Planos de Ação${allPls.length?' ('+allPls.length+')':''}</div>
-  ${lH}
+  ${carH}
   <button class="pft" onclick="togPF('${indKey}')">+ Adicionar novo plano</button>
   <div class="pf" id="pf-${indKey}">
     <div class="fr full"><div class="fl"><label>Ação Proposta</label><textarea id="fa-${indKey}" placeholder="Descreva a ação corretiva..."></textarea></div></div>
@@ -565,6 +602,91 @@ function renderPS(i,P){
 
 // ── PLANO CRUD ────────────────────────────────────────────────
 window.togPF=function(indKey){const f=document.getElementById(`pf-${indKey}`);if(f)f.classList.toggle('open');}
+
+// ── PLAN EDIT MODAL ───────────────────────────────────────────
+window.openEditPlan=function(key,idx){
+  const plan=(PL[key]||[])[idx];
+  if(!plan)return;
+  const aOpts=PLAN_AREAS.map(a=>`<option value="${a}"${plan.area===a?' selected':''}>${a}</option>`).join('');
+  const stOpts=Object.entries(ST_STATUS).map(([v,l])=>`<option value="${v}"${plan.status===v?' selected':''}>${l}</option>`).join('');
+  // Histórico de edições do plano
+  const editHist=(plan.editHist||[]);
+  const histH=editHist.length
+    ?'<div class="medit-list">'+editHist.map(e=>{
+        const dt=new Date(e.quando).toLocaleString('pt-BR');
+        return`<div class="medit-item">
+          <span class="medit-field">${e.campo}</span>
+          <span class="medit-old">${e.de}</span>
+          <span class="medit-arrow">→</span>
+          <span class="medit-new">${e.para}</span>
+          <span class="medit-who">✏ ${e.quem} · ${dt}</span>
+        </div>`;
+      }).join('')+'</div>'
+    :'<div style="color:var(--tx3);font-size:10px;font-weight:500;padding:6px 0">Nenhuma edição registrada ainda.</div>';
+
+  document.getElementById('mi').innerHTML=`
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--ac);margin-bottom:12px">✏ Editar Plano de Ação</div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="edit-plan-form">
+      <div class="fl"><label>Ação Proposta</label><textarea id="ep-acao" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;outline:none;width:100%;min-height:70px;resize:none">${plan.acao||''}</textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="fl"><label>Responsável</label><input id="ep-resp" type="text" value="${plan.resp||''}" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;outline:none;width:100%"></div>
+        <div class="fl"><label>Área</label><select id="ep-area" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;outline:none;width:100%">${aOpts}</select></div>
+        <div class="fl"><label>Início</label><input id="ep-ini" type="date" value="${plan.ini||''}" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;outline:none;width:100%"></div>
+        <div class="fl"><label>Término</label><input id="ep-fim" type="date" value="${plan.fim||''}" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;outline:none;width:100%"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="fl"><label>Métrica de Sucesso</label><input id="ep-met" type="text" value="${plan.met||''}" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;outline:none;width:100%"></div>
+        <div class="fl"><label>Status</label><select id="ep-st" style="background:var(--sur3);border:1px solid var(--bd2);border-radius:7px;padding:8px 10px;color:var(--tx);font-family:Montserrat,sans-serif;font-size:11px;font-weight:500;outline:none;width:100%">${stOpts}</select></div>
+      </div>
+      <button onclick="saveEditPlan('${key}',${idx})" style="background:var(--ac2);border:1px solid var(--acbd);border-radius:8px;padding:10px;color:var(--ac);font-family:Montserrat,sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;cursor:pointer;margin-top:4px;transition:all .2s" onmouseover="this.style.background='var(--ac)';this.style.color='#fff'" onmouseout="this.style.background='var(--ac2)';this.style.color='var(--ac)'">✓ Salvar Alterações</button>
+    </div>
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3);margin:18px 0 10px;display:flex;align-items:center;gap:8px">Histórico de Edições <span style="flex:1;height:1px;background:var(--bd);display:block"></span></div>
+    ${histH}`;
+  document.getElementById('mo').classList.add('open');
+  document.body.style.overflow='hidden';
+};
+
+window.saveEditPlan=async function(key,idx){
+  const lista=[...(PL[key]||[])];
+  const plan=lista[idx];if(!plan)return;
+  const quem=prompt('Seu nome (para o histórico de edições):','')||'Anônimo';
+  // Detect changes and record history
+  const fields={
+    'Ação':['acao',document.getElementById('ep-acao')?.value.trim()||''],
+    'Responsável':['resp',document.getElementById('ep-resp')?.value.trim()||''],
+    'Área':['area',document.getElementById('ep-area')?.value||''],
+    'Início':['ini',document.getElementById('ep-ini')?.value||''],
+    'Término':['fim',document.getElementById('ep-fim')?.value||''],
+    'Métrica':['met',document.getElementById('ep-met')?.value.trim()||''],
+    'Status':['status',document.getElementById('ep-st')?.value||'aguardando'],
+  };
+  const editHist=[...(plan.editHist||[])];
+  for(const[label,[field,newVal]]of Object.entries(fields)){
+    if(plan[field]!==newVal){
+      editHist.push({campo:label,de:plan[field]||'—',para:newVal,quem,quando:new Date().toISOString()});
+      lista[idx][field]=newVal;
+    }
+  }
+  lista[idx].editHist=editHist;
+  await savePlano(key,lista);
+  closeMo();
+};
+
+window.carNav=function(carId,dir){
+  const car=document.getElementById(carId);if(!car)return;
+  const items=car.querySelectorAll('.pcar-item');
+  let cur=0;items.forEach((el,i)=>{if(el.classList.contains('active'))cur=i;});
+  const next=cur+dir;
+  if(next<0||next>=items.length)return;
+  items[cur].classList.remove('active');
+  items[next].classList.add('active');
+  const ctr=document.getElementById(carId+'-ctr');
+  const prev=document.getElementById(carId+'-prev');
+  const nxt=document.getElementById(carId+'-next');
+  if(ctr)ctr.textContent=(next+1)+' / '+items.length;
+  if(prev)prev.disabled=(next===0);
+  if(nxt)nxt.disabled=(next===items.length-1);
+};
 
 window.addPl=async function(indKey,plKey){
   const acao=document.getElementById(`fa-${indKey}`)?.value.trim()||'';
@@ -637,6 +759,14 @@ window.openMo=function(indKey){
         const stCls=ST_CLS[p.status||'aguardando'];
         const stLbl=ST_STATUS[p.status||'aguardando'];
         const mesRef=p._key.split('__').pop().replace('_','/');
+        const pEditHist=(p.editHist||[]);
+        const pHistH=pEditHist.length
+          ?'<div style="margin-top:8px;border-top:1px solid var(--bd);padding-top:8px"><div style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);margin-bottom:5px">Histórico de Edições</div><div class="medit-list">'+
+            pEditHist.map(e=>{
+              const dt=new Date(e.quando).toLocaleString('pt-BR');
+              return`<div class="medit-item"><span class="medit-field">${e.campo}</span><span class="medit-old">${e.de}</span><span class="medit-arrow">→</span><span class="medit-new">${e.para}</span><span class="medit-who">✏ ${e.quem} · ${dt}</span></div>`;
+            }).join('')+'</div></div>'
+          :'';
         return`<div class="mpc">
           <div class="mph">
             <span class="mpn">Plano #${pi+1}</span>
@@ -651,11 +781,13 @@ window.openMo=function(indKey){
             <div class="mpf"><div class="mpfl">Término</div><div class="mpfv">${p.fim||'—'}</div></div>
             <div class="mpf mpfull"><div class="mpfl">Métrica de Sucesso</div><div class="mpfv">${p.met||'—'}</div></div>
           </div>
+          ${pHistH}
         </div>`;
       }).join('')+'</div>')
     :`<div style="color:var(--tx3);font-size:11px;font-weight:500;padding:8px 0">Nenhum plano registrado.</div>`;
 
-  document.getElementById('mi').innerHTML=`
+
+    document.getElementById('mi').innerHTML=`
     <div class="mt">${i.sub}</div><div class="mtt">${i.ind}</div>
     <div class="mrf">${i.ref} · Meta: ${i.mS}</div>
     <div class="msec">Histórico de Resultados</div>
