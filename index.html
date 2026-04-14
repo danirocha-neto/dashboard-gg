@@ -65,6 +65,8 @@ body{
 .pill{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:4px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--sur2);color:var(--tx3);cursor:pointer;transition:all .16s;user-select:none;white-space:nowrap}
 .pill:hover{border-color:var(--ac);color:var(--ac)}
 .pill.active{background:var(--ac);border-color:var(--ac);color:#fff}
+.pill-chave{background:rgba(245,200,64,.08);border-color:rgba(245,200,64,.25);color:var(--y)}
+.pill-chave.active{background:var(--y);border-color:var(--y);color:#000}
 
 /* ── GRID ── */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -418,11 +420,16 @@ function buildInds(raw){
 }
 
 // ── FILTROS ───────────────────────────────────────────────────
-function getUniqueSubs(){return['Todos',...[...new Set(INDS.map(i=>i.sub))]]}
+// ── INDICADORES CHAVE
+const INDICADORES_CHAVE=['SLA de Contratação','Custo de Contratação','Turnover','Horas de Treinamento','Conformidade de Processos (%)','eNPS','ROI'];
+function isChave(i){ return INDICADORES_CHAVE.some(n=>i.ind.toLowerCase()===n.toLowerCase()); }
+
+function getUniqueSubs(){return['Indicadores Chave','Todos',...[...new Set(INDS.map(i=>i.sub))]]}
 function buildAreaPills(){
-  document.getElementById('area-pills').innerHTML=getUniqueSubs().map(s=>
-    `<div class="pill${s===activeArea?' active':''}" onclick="setArea('${s}')">${s}</div>`
-  ).join('');
+  document.getElementById('area-pills').innerHTML=getUniqueSubs().map(s=>{
+    const isK=(s==='Indicadores Chave');
+    return`<div class="pill${s===activeArea?' active':''}${isK?' pill-chave':''}" onclick="setArea('${s}')">${isK?'⭐ '+s:s}</div>`;
+  }).join('');
 }
 window.setArea=function(a){activeArea=a;buildAreaPills();renderGrid();}
 window.toggleSF=function(s){
@@ -432,7 +439,9 @@ window.toggleSF=function(s){
 }
 function applyFilters(){
   let res=INDS;
-  if(activeArea&&activeArea!=='Todos'){
+  if(activeArea==='Indicadores Chave'){
+    res=res.filter(i=>isChave(i));
+  } else if(activeArea&&activeArea!=='Todos'){
     res=res.filter(i=>i.sub.toUpperCase()===activeArea.toUpperCase()||i.sub.toUpperCase()==='GERAL');
   }
   if(activeSF){
@@ -474,10 +483,11 @@ function renderCard(i,P,C){
   const indKey=makeIndKey(i);
   const pb=nPl>0?`<span class="pbadge vis" onclick="openMo('${indKey}')">📋 ${nPl}</span>`:'<span class="pbadge"></span>';
 
+  const displayName = i.ind === 'Turnover' ? 'C.P (Coeficiente de Perda)' : i.ind;
   return`<div class="card ${sc}" id="card-${indKey}">
   <div class="card-bar"></div>
   <div class="ch">
-    <div class="ch-l"><div class="tag">${i.sub}</div><div class="cname">${i.ind}</div></div>
+    <div class="ch-l"><div class="tag">${i.sub}</div><div class="cname">${displayName}</div></div>
     <div class="ch-r"><div class="badge">${SL[i.status]}</div>${pb}</div>
   </div>
   <div class="rows">
